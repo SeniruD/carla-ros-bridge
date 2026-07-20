@@ -46,7 +46,7 @@ class SetInitialPose(CompatibleNode):
 
     def intial_pose_callback(self, initial_pose):
         pose_to_publish = initial_pose.pose.pose
-        pose_to_publish.position.z += 2.0
+        pose_to_publish.position.z += 0.1
         self.transform_publisher.publish(pose_to_publish)
 
 
