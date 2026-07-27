@@ -66,6 +66,10 @@ class Camera(Sensor):
                                      synchronous_mode=synchronous_mode,
                                      is_event_sensor=is_event_sensor)
 
+        # Must be set before _build_camera_info(), which stamps it on the
+        # cached CameraInfo header.
+        self._frame_id = frame_id
+
         if self.__class__.__name__ == "Camera":
             self.node.logwarn("Created Unsupported Camera Actor"
                               "(id={}, type={}, attributes={})".format(self.get_id(),
@@ -78,8 +82,6 @@ class Camera(Sensor):
                                                         '/camera_info', qos_profile=10)
         self.camera_image_publisher = node.new_publisher(Image, self.get_topic_prefix() +
                                                          '/' + 'image', qos_profile=qos.qos_profile_sensor_data)
-        
-        self._frame_id = frame_id
 
     def destroy(self):
         super(Camera, self).destroy()
@@ -94,7 +96,7 @@ class Camera(Sensor):
         """
         camera_info = CameraInfo()
         # store info without header
-        camera_info.header = self.get_msg_header()
+        camera_info.header = self.get_msg_header(frame_id=self._frame_id)
         camera_info.width = int(self.carla_actor.attributes['image_size_x'])
         camera_info.height = int(self.carla_actor.attributes['image_size_y'])
         camera_info.distortion_model = 'plumb_bob'
@@ -247,7 +249,7 @@ class DepthCamera(Camera):
     Camera implementation details for depth camera
     """
 
-    def __init__(self, uid, name, parent, relative_spawn_pose, node, carla_actor, synchronous_mode):
+    def __init__(self, uid, name, parent, relative_spawn_pose, node, carla_actor, synchronous_mode, frame_id=None):
         """
         Constructor
 
@@ -265,6 +267,8 @@ class DepthCamera(Camera):
         :type carla_actor: carla.Actor
         :param synchronous_mode: use in synchronous mode?
         :type synchronous_mode: bool
+        :param frame_id: frame_id stamped on published images, defaults to the sensor prefix
+        :type frame_id: string
         """
         super(DepthCamera, self).__init__(uid=uid,
                                           name=name,
@@ -272,8 +276,10 @@ class DepthCamera(Camera):
                                           relative_spawn_pose=relative_spawn_pose,
                                           node=node,
                                           carla_actor=carla_actor,
-                                          synchronous_mode=synchronous_mode)
+                                          synchronous_mode=synchronous_mode,
+                                          frame_id=frame_id)
 
+        self._frame_id = frame_id
         self.listen()
 
     def get_carla_image_data_array(self, carla_image):
@@ -324,7 +330,7 @@ class SemanticSegmentationCamera(Camera):
     Camera implementation details for segmentation camera
     """
 
-    def __init__(self, uid, name, parent, relative_spawn_pose, node, carla_actor, synchronous_mode):
+    def __init__(self, uid, name, parent, relative_spawn_pose, node, carla_actor, synchronous_mode, frame_id=None):
         """
         Constructor
 
@@ -342,6 +348,8 @@ class SemanticSegmentationCamera(Camera):
         :type carla_actor: carla.Actor
         :param synchronous_mode: use in synchronous mode?
         :type synchronous_mode: bool
+        :param frame_id: frame_id stamped on published images, defaults to the sensor prefix
+        :type frame_id: string
         """
         super(
             SemanticSegmentationCamera, self).__init__(uid=uid,
@@ -350,8 +358,10 @@ class SemanticSegmentationCamera(Camera):
                                                        relative_spawn_pose=relative_spawn_pose,
                                                        node=node,
                                                        synchronous_mode=synchronous_mode,
-                                                       carla_actor=carla_actor)
+                                                       carla_actor=carla_actor,
+                                                       frame_id=frame_id)
 
+        self._frame_id = frame_id
         self.listen()
 
     def get_carla_image_data_array(self, carla_image):

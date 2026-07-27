@@ -389,13 +389,15 @@ class ActorFactory(object):
                                       carla_actor, self.sync_mode, self._frame_id_map[uid])
                 elif carla_actor.type_id.startswith("sensor.camera.depth"):
                     actor = DepthCamera(uid, name, parent, spawn_pose,
-                                        self.node, carla_actor, self.sync_mode)
+                                        self.node, carla_actor, self.sync_mode,
+                                        self._frame_id_map[uid])
                 elif carla_actor.type_id.startswith(
                         "sensor.camera.semantic_segmentation"):
                     actor = SemanticSegmentationCamera(uid, name, parent,
                                                        spawn_pose, self.node,
                                                        carla_actor,
-                                                       self.sync_mode)
+                                                       self.sync_mode,
+                                                       self._frame_id_map[uid])
                 elif carla_actor.type_id.startswith("sensor.camera.dvs"):
                     actor = DVSCamera(uid, name, parent, spawn_pose, self.node,
                                       carla_actor, self.sync_mode)
