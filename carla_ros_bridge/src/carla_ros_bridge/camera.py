@@ -66,10 +66,6 @@ class Camera(Sensor):
                                      synchronous_mode=synchronous_mode,
                                      is_event_sensor=is_event_sensor)
 
-        # Must be set before _build_camera_info(), which stamps it on the
-        # cached CameraInfo header.
-        self._frame_id = frame_id
-
         if self.__class__.__name__ == "Camera":
             self.node.logwarn("Created Unsupported Camera Actor"
                               "(id={}, type={}, attributes={})".format(self.get_id(),
@@ -83,6 +79,8 @@ class Camera(Sensor):
         self.camera_image_publisher = node.new_publisher(Image, self.get_topic_prefix() +
                                                          '/' + 'image', qos_profile=qos.qos_profile_sensor_data)
 
+        self._frame_id = frame_id
+
     def destroy(self):
         super(Camera, self).destroy()
         self.node.destroy_publisher(self.camera_info_publisher)
@@ -95,8 +93,9 @@ class Camera(Sensor):
         camera info doesn't change over time
         """
         camera_info = CameraInfo()
-        # store info without header
-        camera_info.header = self.get_msg_header(frame_id=self._frame_id)
+        # store info without header; sensor_data_updated() overwrites it with the
+        # image header (and therefore its frame_id) on every publish
+        camera_info.header = self.get_msg_header()
         camera_info.width = int(self.carla_actor.attributes['image_size_x'])
         camera_info.height = int(self.carla_actor.attributes['image_size_y'])
         camera_info.distortion_model = 'plumb_bob'
