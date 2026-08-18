@@ -58,6 +58,11 @@ class Lidar(Sensor):
         self.listen()
         self.channels = int(self.carla_actor.attributes.get('channels'))
         self._frame_id = frame_id
+        # For non-repetitive rosette lidars (scan_pattern_file set, e.g. Livox) the
+        # per-point channel index is the laser line, so publish it as 'line' to
+        # match the native driver; mechanical lidars keep the 'ring' name.
+        self._ring_field_name = \
+            'line' if self.carla_actor.attributes.get('scan_pattern_file') else 'ring'
 
     def destroy(self):
         super(Lidar, self).destroy()
@@ -77,7 +82,7 @@ class Lidar(Sensor):
             PointField(name='y', offset=4, datatype=PointField.FLOAT32, count=1),
             PointField(name='z', offset=8, datatype=PointField.FLOAT32, count=1),
             PointField(name='intensity', offset=12, datatype=PointField.FLOAT32, count=1),
-            PointField(name='ring', offset=16, datatype=PointField.UINT16, count=1)
+            PointField(name=self._ring_field_name, offset=16, datatype=PointField.UINT16, count=1)
         ]
 
         lidar_data = numpy.fromstring(
